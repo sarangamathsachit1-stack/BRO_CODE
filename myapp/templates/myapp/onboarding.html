@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onboarding | ZORO</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00f2fe;
+            --primary-hover: #4facfe;
+            --dark-bg: #050b14;
+            --darker-bg: #02060c;
+            --light-text: #f8fafc;
+            --muted-text: #94a3b8;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            color: var(--light-text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            padding-bottom: 5rem;
+        }
+
+        /* Ambient Glow Background */
+        .ambient-glow {
+            position: fixed;
+            top: -20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80vw;
+            height: 80vh;
+            background: radial-gradient(circle, rgba(0, 242, 254, 0.06) 0%, transparent 60%);
+            filter: blur(100px);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        nav {
+            padding: 1.5rem 5%;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            font-size: 1.8rem;
+            color: var(--primary);
+            text-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: var(--light-text);
+        }
+
+        /* Onboarding Layout */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 5%;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .welcome-section h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(180deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .welcome-section p {
+            color: var(--muted-text);
+            font-size: 1.1rem;
+        }
+
+        .onboarding-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: var(--glass-shadow);
+        }
+
+        /* ID Section */
+        .id-section {
+            background: rgba(0, 242, 254, 0.05);
+            border: 1px dashed var(--primary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .id-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .generated-id {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: var(--light-text);
+        }
+
+        .id-helper {
+            font-size: 0.85rem;
+            color: var(--muted-text);
+            margin-top: 0.5rem;
+        }
+
+        /* Form Controls */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.6rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--muted-text);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.8rem 1.2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--light-text);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+        }
+
+        select.form-control {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.2rem;
+        }
+
+        /* Department Dynamic Section */
+        .dept-setup-header {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--glass-border);
+            margin-bottom: 1.5rem;
+        }
+
+        .dept-setup-header h2 {
+            font-size: 1.3rem;
+            color: var(--light-text);
+            margin-bottom: 1rem;
+        }
+
+        #departmentsContainer {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .dept-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .dept-card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dept-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Action Button */
+        .complete-btn {
+            width: 100%;
+            margin-top: 3rem;
+            padding: 1.2rem;
+            background: var(--primary);
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-weight: 800;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .complete-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 242, 254, 0.4);
+        }
+
+        /* Success Overlay */
+        #successOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(2, 6, 12, 0.95);
+            backdrop-filter: blur(10px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            text-align: center;
+        }
+
+        .success-content i {
+            font-size: 5rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            display: block;
+            text-shadow: 0 0 30px rgba(0, 242, 254, 0.5);
+        }
+
+        .success-content h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .success-content p {
+            color: var(--muted-text);
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid, .dept-grid {
+                grid-template-columns: 1fr;
+            }
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="ambient-glow"></div>
+
+    <nav>
+        <div class="logo-container">
+            <i class="fa-solid fa-scale-balanced logo-icon"></i>
+            <span class="logo-text">ZORO</span>
+        </div>
+    </nav>
+
+    <main>
+        <div class="welcome-section">
+            <h1>Welcome to ZORO!</h1>
+            <p>Your company setup begins now.</p>
+        </div>
+
+        <div class="onboarding-card">
+            <div class="id-section">
+                <span class="id-label">Registration Successful - Your Admin ID</span>
+                <div class="generated-id">ZORO-EMP-83472</div>
+                <div class="id-helper">Use this ID to log in to your account after setup</div>
+            </div>
+
+            <form id="onboardingForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="companyType">Company Type</label>
+                        <select id="companyType" class="form-control" required>
+                            <option value="">Select Type</option>
+                            <option value="private">Private</option>
+                            <option value="public">Public</option>
+                            <option value="startup">Startup</option>
+                            <option value="enterprise">Enterprise</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="location">Company Location</label>
+                        <input type="text" id="location" class="form-control" placeholder="e.g. New York, USA">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="description">Company Description (Optional)</label>
+                        <textarea id="description" class="form-control" rows="3" placeholder="Briefly describe your company mission..."></textarea>
+                    </div>
+                </div>
+
+                <div class="dept-setup-header">
+                    <h2>Departments Setup</h2>
+                    <div class="form-group" style="max-width: 350px;">
+                        <label for="deptCount">How many departments does your company have?</label>
+                        <input type="number" id="deptCount" class="form-control" min="0" max="20" placeholder="Enter number of departments">
+                    </div>
+                </div>
+
+                <div id="departmentsContainer">
+                    <!-- Dynamic cards will appear here -->
+                </div>
+
+                <button type="submit" class="complete-btn">
+                    Complete Registration <i class="fa-solid fa-circle-check"></i>
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <div id="successOverlay">
+        <div class="success-content">
+            <i class="fa-solid fa-circle-check"></i>
+            <h2>Registration Successful!</h2>
+            <p>Your company has been successfully registered.<br>Redirecting you to the login page...</p>
+        </div>
+    </div>
+
+    <script>
+        const deptCountInput = document.getElementById('deptCount');
+        const departmentsContainer = document.getElementById('departmentsContainer');
+
+        deptCountInput.addEventListener('input', function() {
+            const count = parseInt(this.value) || 0;
+            updateDepartmentCards(count);
+        });
+
+        function updateDepartmentCards(count) {
+            // Limited to 20 for UI sanity
+            const safeCount = Math.min(count, 20);
+            
+            // Clear or keep existing? Let's just regenerate for now
+            departmentsContainer.innerHTML = '';
+            
+            for (let i = 1; i <= safeCount; i++) {
+                const card = document.createElement('div');
+                card.className = 'dept-card';
+                card.innerHTML = `
+                    <div class="dept-card-title">
+                        <i class="fa-solid fa-building-user"></i> Department ${i}
+                    </div>
+                    <div class="dept-grid">
+                        <div class="form-group">
+                            <label>Department Name</label>
+                            <input type="text" class="form-control" placeholder="e.g. Engineering" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Number of Employees</label>
+                            <input type="number" class="form-control emp-count" min="1" placeholder="e.g. 10" required data-index="${i}">
+                        </div>
+                        <div class="form-group">
+                            <label>Assign Department Head</label>
+                            <select class="form-control head-select" required data-index="${i}">
+                                <option value="">Select Employee</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+                departmentsContainer.appendChild(card);
+            }
+
+            // Add listeners to employee counts to update head selection dropdowns
+            document.querySelectorAll('.emp-count').forEach(input => {
+                input.addEventListener('input', function() {
+                    const index = this.getAttribute('data-index');
+                    const empCount = parseInt(this.value) || 0;
+                    const headSelect = document.querySelector(`.head-select[data-index="${index}"]`);
+                    
+                    headSelect.innerHTML = '<option value="">Select Employee</option>';
+                    for (let j = 1; j <= empCount; j++) {
+                        const option = document.createElement('option');
+                        option.value = `emp_${j}`;
+                        option.textContent = `Employee ${j}`;
+                        headSelect.appendChild(option);
+                    }
+                });
+            });
+        }
+
+        document.getElementById('onboardingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show success state
+            document.getElementById('successOverlay').style.display = 'flex';
+            
+            // Redirect after 3 seconds
+            setTimeout(() => {
+                window.location.href = "{% url 'login' %}"; 
+            }, 3000);
+        });
+    </script>
+</body>
+</html>

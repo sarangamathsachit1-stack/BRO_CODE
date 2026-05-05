@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | ZORO</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #00f2fe;
+            --primary-hover: #4facfe;
+            --dark-bg: #050b14;
+            --darker-bg: #02060c;
+            --light-text: #f8fafc;
+            --muted-text: #94a3b8;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            color: var(--light-text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Ambient Glow Background */
+        .ambient-glow {
+            position: fixed;
+            top: -20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80vw;
+            height: 80vh;
+            background: radial-gradient(circle, rgba(0, 242, 254, 0.05) 0%, transparent 60%);
+            filter: blur(100px);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Navbar */
+        nav {
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(2, 6, 12, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            font-size: 1.5rem;
+            color: var(--primary);
+            text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+        }
+
+        .logo-text {
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: var(--light-text);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .user-dropdown {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .profile-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .profile-btn:hover {
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+            border-color: var(--primary);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: var(--darker-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            width: 180px;
+            display: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            overflow: hidden;
+            z-index: 100;
+        }
+
+        .dropdown-menu.active {
+            display: block;
+            animation: slideIn 0.2s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dropdown-item {
+            padding: 0.8rem 1.2rem;
+            font-size: 0.9rem;
+            color: var(--muted-text);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--primary);
+        }
+
+        /* Dashboard Content */
+        main {
+            padding: 3rem 5%;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .dashboard-header {
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: var(--glass-shadow);
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Budget Flow Card */
+        .budget-flow-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .budget-stat {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--muted-text);
+            margin-bottom: 0.5rem;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        .stat-value.total { color: var(--light-text); }
+        .stat-value.allocated { color: var(--primary); }
+        .stat-value.remaining { color: var(--success); }
+
+        .btn-view-details {
+            width: 100%;
+            padding: 0.8rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--light-text);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-view-details:hover {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+        }
+
+        /* Request Section */
+        .request-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(90deg, rgba(0, 242, 254, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%);
+            border: 1px solid var(--glass-border);
+        }
+
+        .request-info h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .request-info p {
+            color: var(--muted-text);
+        }
+
+        .btn-request {
+            padding: 1rem 2rem;
+            background: var(--primary);
+            color: #000;
+            border-radius: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .btn-request:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.5);
+        }
+
+        /* Dynamic Sections (Hidden by Default) */
+        .sub-page {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .sub-page.active {
+            display: block;
+        }
+
+        /* Analytics Sub-page */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 2rem;
+        }
+
+        .chart-container {
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 1rem;
+            color: var(--muted-text);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .badge-approved { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+
+        /* Request Form Sub-page */
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--muted-text);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.8rem 1.2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--light-text);
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input { display: none; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--glass-bg);
+            transition: .4s;
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px; width: 16px;
+            left: 4px; bottom: 3px;
+            background-color: var(--muted-text);
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider { background-color: var(--danger); border-color: var(--danger); }
+        input:checked + .slider:before { transform: translateX(26px); background-color: #fff; }
+
+        .btn-submit {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary);
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .btn-submit:hover {
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+            transform: translateY(-2px);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .budget-flow-grid, .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="ambient-glow"></div>
+
+    <nav>
+        <a href="/" class="logo-container">
+            <i class="fa-solid fa-scale-balanced logo-icon"></i>
+            <span class="logo-text">ZORO</span>
+        </a>
+        <div class="nav-right">
+            <div class="user-dropdown" id="userDropdown">
+                <div class="profile-btn">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <div class="dropdown-menu">
+                    <a href="#" class="dropdown-item"><i class="fa-solid fa-gear"></i> Settings</a>
+                    <a href="/" class="dropdown-item"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <div class="dashboard-header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 id="welcomeText">Welcome, Admin</h1>
+                    <p id="roleSubtext" style="color: var(--muted-text);">CFO / Finance Head - Full organization overview.</p>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <span style="font-size: 0.8rem; color: var(--muted-text);">Demo Role:</span>
+                    <select id="roleSwitcher" class="form-control" style="width: auto; padding: 0.4rem 2rem 0.4rem 1rem;">
+                        <option value="ADMIN">CFO (Admin)</option>
+                        <option value="MANAGER">Dept Manager</option>
+                        <option value="EMPLOYEE">Employee</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 1: Total Budget Flow -->
+        <div class="card role-admin role-manager" id="mainCard">
+            <div class="budget-flow-grid">
+                <div class="budget-stat">
+                    <span class="stat-label">Total Budget</span>
+                    <div class="stat-value total">₹5,00,000</div>
+                </div>
+                <div class="budget-stat">
+                    <span class="stat-label">Allocated</span>
+                    <div class="stat-value allocated">₹3,20,000</div>
+                </div>
+                <div class="budget-stat">
+                    <span class="stat-label">Remaining</span>
+                    <div class="stat-value remaining">₹1,80,000</div>
+                </div>
+            </div>
+            <button class="btn-view-details" onclick="toggleSubPage('analyticsPage')">View Organization Details</button>
+        </div>
+
+        <!-- Section 2: Request Budget (Employee View) -->
+        <div class="card request-card role-employee">
+            <div class="request-info">
+                <h2>Raise Budget Need</h2>
+                <p>Have an issue or project requirement? Submit a request to your manager.</p>
+            </div>
+            <button class="btn-request" onclick="toggleSubPage('requestPage')">Raise Request</button>
+        </div>
+
+        <!-- Section 3: Manager Approval Queue (Manager View) -->
+        <div class="card role-manager" style="display: none;" id="managerQueue">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2>Department Requests</h2>
+                <span class="badge badge-pending">2 New</span>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Amount</th>
+                            <th>Reason</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Employee 4</td>
+                            <td>₹12,000</td>
+                            <td>Server maintenance overdue</td>
+                            <td>
+                                <button class="btn-view-details" style="width: auto; padding: 0.4rem 1rem; margin-right: 5px;" onclick="escalateRequest('Employee 4')">Escalate to CFO</button>
+                                <button class="btn-view-details" style="width: auto; padding: 0.4rem 1rem; color: var(--danger);" onclick="alert('Rejected')">Reject</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Analytics Sub-page -->
+        <div id="analyticsPage" class="sub-page">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2>Budget Analytics</h2>
+                    <button class="btn-view-details" style="width: auto; padding: 0.5rem 1rem;" onclick="toggleSubPage('main')">Close</button>
+                </div>
+                <div class="analytics-grid">
+                    <div class="chart-container">
+                        <canvas id="budgetChart"></canvas>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Department</th>
+                                    <th>Allocated</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Engineering</td>
+                                    <td>₹1,50,000</td>
+                                    <td><span class="badge badge-approved">Approved</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Marketing</td>
+                                    <td>₹80,000</td>
+                                    <td><span class="badge badge-approved">Approved</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Operations</td>
+                                    <td>₹90,000</td>
+                                    <td><span class="badge badge-pending">Pending</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Request Form Sub-page -->
+        <div id="requestPage" class="sub-page">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2>Raise Budget Request</h2>
+                    <button class="btn-view-details" style="width: auto; padding: 0.5rem 1rem;" onclick="toggleSubPage('main')">Cancel</button>
+                </div>
+                <div class="form-container">
+                    <form id="requestForm">
+                        <div class="form-group">
+                            <label>Amount Requested (₹)</label>
+                            <input type="number" class="form-control" placeholder="e.g. 5000" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Description of Need</label>
+                            <textarea class="form-control" rows="4" placeholder="Explain why this budget is needed for your tasks..." required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="toggle-switch">
+                                <span class="switch">
+                                    <input type="checkbox">
+                                    <span class="slider"></span>
+                                </span>
+                                Is this an urgent issue?
+                            </label>
+                        </div>
+                        <button type="submit" class="btn-submit">Submit to Manager</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Role Switcher Logic
+        const roleSwitcher = document.getElementById('roleSwitcher');
+        const welcomeText = document.getElementById('welcomeText');
+        const roleSubtext = document.getElementById('roleSubtext');
+
+        roleSwitcher.addEventListener('change', function() {
+            const role = this.value;
+            updateUIForRole(role);
+        });
+
+        function updateUIForRole(role) {
+            // Hide all role-specific elements
+            document.querySelectorAll('.role-admin, .role-manager, .role-employee').forEach(el => {
+                el.style.display = 'none';
+            });
+
+            if (role === 'ADMIN') {
+                welcomeText.textContent = 'Welcome, CFO';
+                roleSubtext.textContent = 'CFO / Finance Head - Full organization overview.';
+                document.querySelectorAll('.role-admin').forEach(el => el.style.display = 'block');
+            } else if (role === 'MANAGER') {
+                welcomeText.textContent = 'Welcome, Dept Manager';
+                roleSubtext.textContent = 'Engineering Manager - Manage department funds and requests.';
+                document.querySelectorAll('.role-manager').forEach(el => el.style.display = 'block');
+                document.getElementById('managerQueue').style.display = 'block';
+                document.getElementById('mainCard').querySelector('.stat-label.total').textContent = 'Dept Budget';
+                document.getElementById('mainCard').querySelector('.total').textContent = '₹1,50,000';
+            } else {
+                welcomeText.textContent = 'Welcome, Employee';
+                roleSubtext.textContent = 'Engineering Team - Raise budget issues and needs.';
+                document.querySelectorAll('.role-employee').forEach(el => el.style.display = 'block');
+            }
+        }
+
+        function escalateRequest(name) {
+            alert(`Request from ${name} has been escalated to the CFO / Finance Team for final approval.`);
+        }
+
+        // Initialize with default role
+        updateUIForRole('ADMIN');
+
+        // Dropdown toggle
+        const dropdownBtn = document.getElementById('userDropdown');
+        const dropdownMenu = document.querySelector('.dropdown-menu');
+
+        dropdownBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('active');
+        });
+
+        window.addEventListener('click', () => {
+            dropdownMenu.classList.remove('active');
+        });
+
+        // Sub-page Navigation
+        function toggleSubPage(pageId) {
+            const subPages = document.querySelectorAll('.sub-page');
+            subPages.forEach(p => p.classList.remove('active'));
+            
+            if (pageId === 'main') {
+                // Just close everything
+                return;
+            }
+
+            const targetPage = document.getElementById(pageId);
+            targetPage.classList.add('active');
+            targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            if (pageId === 'analyticsPage') {
+                initChart();
+            }
+        }
+
+        // Chart Initialization
+        let budgetChart = null;
+        function initChart() {
+            if (budgetChart) budgetChart.destroy();
+            const ctx = document.getElementById('budgetChart').getContext('2d');
+            budgetChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Engineering', 'Marketing', 'Operations', 'Remaining'],
+                    datasets: [{
+                        data: [150000, 80000, 90000, 180000],
+                        backgroundColor: [
+                            '#00f2fe',
+                            '#4facfe',
+                            '#10b981',
+                            'rgba(255, 255, 255, 0.05)'
+                        ],
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#94a3b8',
+                                padding: 20,
+                                font: { size: 12 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Form Submission
+        document.getElementById('requestForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Your budget request has been submitted successfully as "Pending".');
+            toggleSubPage('main');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZORO | Real-Time Collaborative Budget Allocator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00f2fe; /* Cyan/Teal glow */
+            --primary-hover: #4facfe;
+            --dark-bg: #050b14; /* Deep black to dark blue */
+            --darker-bg: #02060c;
+            --light-text: #f8fafc;
+            --muted-text: #94a3b8;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            color: var(--light-text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('/media/logo.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.08; /* Subtle background image */
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        /* Ambient Glow Background */
+        .ambient-glow {
+            position: fixed;
+            top: -20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80vw;
+            height: 80vh;
+            background: radial-gradient(circle, rgba(0, 242, 254, 0.08) 0%, transparent 60%);
+            filter: blur(100px);
+            z-index: -1;
+            pointer-events: none;
+            animation: pulse 8s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; transform: translateX(-50%) scale(0.9); }
+            100% { opacity: 1; transform: translateX(-50%) scale(1.1); }
+        }
+
+        /* Typography */
+        h1, h2, h3, h4 {
+            line-height: 1.2;
+        }
+        
+        h2.section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 3rem;
+        }
+
+        /* Navbar */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 1.2rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(2, 6, 12, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            font-size: 1.8rem;
+            color: var(--primary);
+            text-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: var(--light-text);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--muted-text);
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .profile-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--light-text);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .profile-btn:hover {
+            background: rgba(0, 242, 254, 0.1);
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+            transform: scale(1.05);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #000;
+            border: 1px solid transparent;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 242, 254, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--light-text);
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(0, 242, 254, 0.05);
+            transform: translateY(-2px);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 5%;
+            padding-top: 80px;
+        }
+
+        .hero-badge {
+            background: rgba(0, 242, 254, 0.1);
+            border: 1px solid rgba(0, 242, 254, 0.2);
+            color: var(--primary);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .hero h1 {
+            font-size: 4.5rem;
+            font-weight: 800;
+            max-width: 900px;
+            margin-bottom: 1.5rem;
+            letter-spacing: -1px;
+            background: linear-gradient(180deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--muted-text);
+            max-width: 650px;
+            margin-bottom: 3rem;
+            font-weight: 400;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* Section Containers */
+        .section-container {
+            padding: 8rem 5%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* About Section */
+        .about-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 4rem;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .about-text h3 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: var(--light-text);
+        }
+
+        .about-text p {
+            color: var(--muted-text);
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-top: 2rem;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-icon {
+            color: var(--primary);
+            background: rgba(0, 242, 254, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+        }
+
+        .feature-detail h4 {
+            font-size: 1.1rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .feature-detail p {
+            font-size: 0.95rem;
+            color: var(--muted-text);
+            margin-bottom: 0;
+        }
+
+        /* Founders Section */
+        .founders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .founder-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .founder-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(0, 242, 254, 0.1);
+        }
+
+        .founder-img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: var(--muted-text);
+            border: 2px solid var(--glass-border);
+        }
+
+        .founder-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .founder-card .role {
+            color: var(--primary);
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .founder-card p {
+            color: var(--muted-text);
+            font-size: 0.95rem;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--darker-bg);
+            border-top: 1px solid var(--glass-border);
+            padding: 4rem 5% 2rem;
+            margin-top: 4rem;
+        }
+
+        .footer-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 3rem;
+        }
+
+        .footer-brand .logo-container {
+            margin-bottom: 1rem;
+        }
+
+        .footer-brand p {
+            color: var(--muted-text);
+            font-size: 0.9rem;
+            max-width: 300px;
+        }
+
+        .footer-col h4 {
+            color: var(--light-text);
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        .footer-col ul {
+            list-style: none;
+        }
+
+        .footer-col ul li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-col ul li a,
+        .footer-col ul li span {
+            color: var(--muted-text);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer-col ul li a:hover {
+            color: var(--primary);
+        }
+
+        .footer-col ul li i {
+            margin-right: 10px;
+            color: var(--primary);
+            width: 15px;
+            text-align: center;
+        }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 3rem auto 0;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--muted-text);
+            font-size: 0.85rem;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .social-links a {
+            color: var(--muted-text);
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
+
+        .social-links a:hover {
+            color: var(--primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 3rem; }
+            .hero p { font-size: 1.1rem; }
+            .hero-cta { flex-direction: column; width: 100%; max-width: 300px; }
+            .nav-links { display: none; /* Mobile menu needed in real app */ }
+            .about-grid, .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+            .about-card { padding: 2rem; }
+            .footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="ambient-glow"></div>
+
+    <nav>
+        <a href="#" class="logo-container">
+            <i class="fa-solid fa-scale-balanced logo-icon"></i>
+            <span class="logo-text">ZORO</span>
+        </a>
+        <div class="nav-links">
+            <a href="#about" class="nav-link">About Us</a>
+            <a href="#leadership" class="nav-link">Our Leadership</a>
+            <a href="#contact" class="nav-link">Contact Us</a>
+            <a href="{% url 'login' %}" class="profile-btn" title="Dashboard / Login">
+                <i class="fa-regular fa-user"></i>
+            </a>
+        </div>
+    </nav>
+
+    <main class="hero">
+        <div class="hero-badge">Enterprise Budgeting Platform</div>
+        <h1>Real-Time Collaborative Budget Allocation</h1>
+        <p>Negotiate, allocate, and optimize budgets across departments in real time. Eliminate friction, resolve conflicts instantly, and maintain a single source of truth.</p>
+        <div class="hero-cta">
+            <a href="{% url 'register' %}" class="btn btn-primary">Register Company</a>
+            <a href="{% url 'login' %}" class="btn btn-outline">Login</a>
+        </div>
+    </main>
+
+    <section id="about" class="section-container">
+        <h2 class="section-title">About ZORO</h2>
+        
+        <div class="about-card" style="margin-bottom: 3rem;">
+            <div class="about-text" style="text-align: center; max-width: 900px; margin: 0 auto;">
+                <p>At Zoro, we believe that financial transparency isn't just about spreadsheets—it’s about empowering teams to collaborate without friction. Budgeting in large organizations is often a battlefield of conflicting priorities and siloed communication. We’ve changed that.</p>
+                <p>Zoro is a state-of-the-art Real-Time Collaborative Budget Allocator designed for high-stakes environments like IT firms, healthcare systems, educational institutions, and financial houses. We provide a single source of truth where fiscal planning meets real-time execution.</p>
+                
+                <h3 style="margin-top: 2.5rem; color: var(--light-text);">Our Mission</h3>
+                <p>To eliminate the "budgeting vacuum" by providing institutions with an intelligent, automated ecosystem where every dollar is tracked, every conflict is arbitrated, and every stakeholder is aligned.</p>
+            </div>
+        </div>
+
+        <h3 style="text-align: center; font-size: 2rem; margin-bottom: 2rem; color: var(--light-text);">What Sets Zoro Apart?</h3>
+        <div class="about-card" style="margin-bottom: 3rem;">
+            <div class="about-text" style="max-width: 900px; margin: 0 auto; line-height: 2;">
+                <p>
+                    <strong style="color: var(--primary);">Intelligent Arbitration:</strong> Gone are the days of endless meetings to resolve funding overlaps. Zoro’s proprietary conflict engine uses rule-based priority logic to resolve competing requests instantly. 
+                    <strong style="color: var(--primary); margin-left: 10px;">Cascading Accuracy:</strong> Our system is alive. A single adjustment in one department triggers an immediate, live recalculation across the entire organization, ensuring you never over-allocate.
+                </p>
+                <p style="margin-top: 1.5rem;">
+                    <strong style="color: var(--primary);">Total Hierarchy Integration:</strong> From an entry-level employee raising a fund request to a Department Manager and ultimately the Finance Head or CEO, Zoro creates a seamless chain of command.
+                    <strong style="color: var(--primary); margin-left: 10px;">Immutable Integrity:</strong> With a full audit trail and "point-in-time" rollback capabilities, we ensure that your financial history is transparent, accountable, and secure.
+                </p>
+            </div>
+        </div>
+
+        <div class="about-card" style="text-align: center;">
+            <div class="about-text" style="max-width: 900px; margin: 0 auto;">
+                <h3 style="color: var(--light-text); margin-bottom: 1.5rem;">Tailored for Growth</h3>
+                <p style="margin-bottom: 0;">Whether you are a multi-specialty hospital managing life-saving equipment funds, a university balancing departmental grants, or a local bank optimizing operational costs, Zoro scales with you. Our subscription-based model allows you to define your departments, manage your workforce, and monitor your entire fiscal ecosystem from a single, intuitive dashboard.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="leadership" class="section-container" style="padding-top: 0;">
+        <h2 class="section-title">Our Leadership</h2>
+        <div class="founders-grid">
+            <div class="founder-card">
+                <div class="founder-img">
+                    <i class="fa-solid fa-user-tie"></i>
+                </div>
+                <h3>John Doe</h3>
+                <div class="role">Founder & CEO</div>
+                <p>Visionary leader bridging the gap between complex finance and intuitive technology.</p>
+            </div>
+            <div class="founder-card">
+                <div class="founder-img">
+                    <i class="fa-solid fa-user-check"></i>
+                </div>
+                <h3>Jane Smith</h3>
+                <div class="role">Co-Founder & CTO</div>
+                <p>Engineering expert architecting scalable and secure financial ecosystems.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer id="contact">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <a href="#" class="logo-container">
+                    <i class="fa-solid fa-scale-balanced logo-icon"></i>
+                    <span class="logo-text">ZORO</span>
+                </a>
+                <p style="margin-top: 1rem;">The ultimate Real-Time Collaborative Budget Allocator for modern enterprises.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="#about">About Us</a></li>
+                    <li><a href="#leadership">Leadership</a></li>
+                    <li><a href="#">Pricing</a></li>
+                    <li><a href="#">Documentation</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Contact Us</h4>
+                <ul>
+                    <li><i class="fa-solid fa-envelope"></i> <span>hello@zoro.io</span></li>
+                    <li><i class="fa-solid fa-phone"></i> <span>+1 (555) 123-4567</span></li>
+                    <li><i class="fa-solid fa-location-dot"></i> <span>100 Innovation Way,<br>Tech District, NY 10001</span></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div>&copy; 2026 ZORO Inc. All rights reserved.</div>
+            <div class="social-links">
+                <a href="#"><i class="fa-brands fa-twitter"></i></a>
+                <a href="#"><i class="fa-brands fa-linkedin"></i></a>
+                <a href="#"><i class="fa-brands fa-github"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    {% block content %}
+    {% endblock %}
+</body>
+</html>
