@@ -8,7 +8,6 @@ class Company(models.Model):
     mobile_number = models.CharField(max_length=15)
     email = models.EmailField(unique=True)
     gst_number = models.CharField(max_length=20, blank=True, null=True)
-    company_type = models.CharField(max_length=100)
     location = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     subscription_status = models.BooleanField(default=True)

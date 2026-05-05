@@ -352,17 +352,7 @@
 
             <form id="onboardingForm">
                 <div class="form-grid">
-                    <div class="form-group">
-                        <label for="companyType">Company Type</label>
-                        <select id="companyType" class="form-control" required>
-                            <option value="">Select Type</option>
-                            <option value="private">Private</option>
-                            <option value="public">Public</option>
-                            <option value="startup">Startup</option>
-                            <option value="enterprise">Enterprise</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
+                    <div class="form-group full-width">
                         <label for="location">Company Location</label>
                         <input type="text" id="location" class="form-control" placeholder="e.g. New York, USA">
                     </div>
@@ -412,7 +402,6 @@
             // Limited to 20 for UI sanity
             const safeCount = Math.min(count, 20);
             
-            // Clear or keep existing? Let's just regenerate for now
             departmentsContainer.innerHTML = '';
             
             for (let i = 1; i <= safeCount; i++) {
@@ -432,29 +421,65 @@
                             <input type="number" class="form-control emp-count" min="1" placeholder="e.g. 10" required data-index="${i}">
                         </div>
                         <div class="form-group">
-                            <label>Assign Department Head</label>
+                            <label>Assign Manager</label>
                             <select class="form-control head-select" required data-index="${i}">
-                                <option value="">Select Employee</option>
+                                <option value="">Select Manager</option>
                             </select>
                         </div>
+                    </div>
+                    <div id="employeeDetails_${i}" class="employee-details-container" style="margin-top: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <!-- Employee credential fields will appear here -->
                     </div>
                 `;
                 departmentsContainer.appendChild(card);
             }
 
-            // Add listeners to employee counts to update head selection dropdowns
+            // Add listeners to employee counts
             document.querySelectorAll('.emp-count').forEach(input => {
                 input.addEventListener('input', function() {
                     const index = this.getAttribute('data-index');
                     const empCount = parseInt(this.value) || 0;
                     const headSelect = document.querySelector(`.head-select[data-index="${index}"]`);
+                    const detailsContainer = document.getElementById(`employeeDetails_${index}`);
                     
-                    headSelect.innerHTML = '<option value="">Select Employee</option>';
-                    for (let j = 1; j <= empCount; j++) {
-                        const option = document.createElement('option');
-                        option.value = `emp_${j}`;
-                        option.textContent = `Employee ${j}`;
-                        headSelect.appendChild(option);
+                    // Update Manager Dropdown
+                    headSelect.innerHTML = '<option value="">Select Manager</option>';
+                    // Update Employee Detail Fields
+                    detailsContainer.innerHTML = '';
+                    
+                    if (empCount > 0) {
+                        for (let j = 1; j <= empCount; j++) {
+                            // Add to dropdown
+                            const option = document.createElement('option');
+                            option.value = `emp_${j}`;
+                            option.textContent = `Employee ${j}`;
+                            headSelect.appendChild(option);
+
+                            // Add ID/Password fields
+                            const empRow = document.createElement('div');
+                            empRow.className = 'emp-credential-row';
+                            empRow.style.gridColumn = 'span 2';
+                            empRow.style.display = 'grid';
+                            empRow.style.gridTemplateColumns = '1fr 1fr';
+                            empRow.style.gap = '1rem';
+                            empRow.style.padding = '1rem';
+                            empRow.style.background = 'rgba(255,255,255,0.02)';
+                            empRow.style.border = '1px solid var(--glass-border)';
+                            empRow.style.borderRadius = '12px';
+                            empRow.style.marginBottom = '0.5rem';
+                            
+                            empRow.innerHTML = `
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label style="font-size: 0.75rem;">Employee ${j} ID</label>
+                                    <input type="text" class="form-control" style="padding: 0.5rem 0.8rem; font-size: 0.9rem;" value="ZORO-EMP-${Math.floor(10000 + Math.random() * 90000)}" readonly>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label style="font-size: 0.75rem;">Employee ${j} Password</label>
+                                    <input type="password" class="form-control" style="padding: 0.5rem 0.8rem; font-size: 0.9rem;" value="zoro@${Math.floor(1000 + Math.random() * 9000)}" required>
+                                </div>
+                            `;
+                            detailsContainer.appendChild(empRow);
+                        }
                     }
                 });
             });
