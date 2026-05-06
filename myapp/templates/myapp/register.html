@@ -263,7 +263,8 @@
         <div class="register-card">
             <h1>Register Your Company</h1>
             
-            <form action="#" method="POST" id="registerForm">
+            <form action="{% url 'register' %}" method="POST" id="registerForm">
+                {% csrf_token %}
                 <div class="form-group">
                     <label for="companyName">Company Name</label>
                     <input type="text" id="companyName" name="companyName" class="form-input" placeholder="e.g. Acme Corp" required>
@@ -277,6 +278,16 @@
                 <div class="form-group">
                     <label for="email">Email ID</label>
                     <input type="email" id="email" name="email" class="form-input" placeholder="admin@company.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Create Password</label>
+                    <input type="password" id="password" name="password" class="form-input" placeholder="••••••••" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-input" placeholder="••••••••" required>
                 </div>
                 
                 <div class="form-group">
@@ -310,9 +321,17 @@
     <script>
         document.getElementById('registerForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            // Basic validation is handled by HTML5 attributes
-            // Redirecting to onboarding as the next step
-            window.location.href = "{% url 'onboarding' %}";
+            
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (password !== confirmPassword) {
+                alert('Passwords do not match! Please try again.');
+                return;
+            }
+
+            // Allow form to submit normally to the backend
+            e.target.submit();
         });
     </script>
 </body>

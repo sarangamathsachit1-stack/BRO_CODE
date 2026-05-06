@@ -461,72 +461,113 @@
         <div class="dashboard-header">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <h1 id="welcomeText">Welcome, Admin</h1>
-                    <p id="roleSubtext" style="color: var(--muted-text);">CFO / Finance Head - Full organization overview.</p>
+                    <h1 id="welcomeText">Welcome, {{ employee.employee_id|default:"User-ID" }}</h1>
+                    {% if employee.role != 'ADMIN' %}
+                    <p id="roleSubtext" style="color: var(--muted-text);">
+                        <span id="displayDept">{{ employee.department.name|default:"General Dept" }}</span> | <span id="displayInstitute">{{ employee.company.name|default:"ZORO Platform" }}</span>
+                    </p>
+                    {% endif %}
                 </div>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <span style="font-size: 0.8rem; color: var(--muted-text);">Demo Role:</span>
-                    <select id="roleSwitcher" class="form-control" style="width: auto; padding: 0.4rem 2rem 0.4rem 1rem;">
-                        <option value="ADMIN">CFO (Admin)</option>
-                        <option value="MANAGER">Dept Manager</option>
-                        <option value="EMPLOYEE">Employee</option>
-                    </select>
+                <div class="user-meta" style="text-align: right;">
+                    <span class="badge badge-approved" style="text-transform: uppercase;">{{ employee.role }} Mode</span>
                 </div>
             </div>
         </div>
 
-        <!-- Section 1: Total Budget Flow -->
-        <div class="card role-admin role-manager" id="mainCard">
-            <div class="budget-flow-grid">
+        <!-- Section 1: CFO Organization View -->
+        <div class="card role-admin" id="adminMainCard">
+            <div class="budget-flow-grid" style="grid-template-columns: repeat(4, 1fr);">
                 <div class="budget-stat">
-                    <span class="stat-label">Total Budget</span>
-                    <div class="stat-value total">₹5,00,000</div>
+                    <span class="stat-label">Total Organization Budget</span>
+                    <div class="stat-value total">₹{{ company.total_budget|default:"0" }}</div>
                 </div>
                 <div class="budget-stat">
-                    <span class="stat-label">Allocated</span>
-                    <div class="stat-value allocated">₹3,20,000</div>
+                    <span class="stat-label">Total Departments</span>
+                    <div class="stat-value" style="color: var(--primary);">{{ stats.dept_count }}</div>
                 </div>
                 <div class="budget-stat">
-                    <span class="stat-label">Remaining</span>
-                    <div class="stat-value remaining">₹1,80,000</div>
+                    <span class="stat-label">Allocated to Depts</span>
+                    <div class="stat-value" style="color: var(--primary);">₹{{ stats.allocated_total }}</div>
+                </div>
+                <div class="budget-stat">
+                    <span class="stat-label">Remaining Liquid</span>
+                    <div class="stat-value" style="color: var(--success);">₹{{ stats.remaining_liquid }}</div>
                 </div>
             </div>
             <button class="btn-view-details" onclick="toggleSubPage('analyticsPage')">View Organization Details</button>
         </div>
 
-        <!-- Section 2: Request Budget (Employee View) -->
-        <div class="card request-card role-employee">
-            <div class="request-info">
-                <h2>Raise Budget Need</h2>
-                <p>Have an issue or project requirement? Submit a request to your manager.</p>
+        <!-- Section 2: Manager / Employee Department View -->
+        <div class="card role-manager role-employee" id="deptCard" style="border-left: 4px solid var(--primary);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+                <div>
+                    <span class="stat-label">Active Department</span>
+                    <h2 id="deptTitle">Engineering Department</h2>
+                </div>
+                <div class="role-manager">
+                    <span class="stat-label">Department Reserve (Saved)</span>
+                    <div class="stat-value" style="font-size: 1.5rem; color: var(--success);" id="deptReserve">₹45,000</div>
+                </div>
             </div>
-            <button class="btn-request" onclick="toggleSubPage('requestPage')">Raise Request</button>
+            
+            <div class="budget-flow-grid role-manager">
+                <div class="budget-stat">
+                    <span class="stat-label">Monthly Allocation</span>
+                    <div class="stat-value" style="font-size: 1.5rem;">₹1,50,000</div>
+                </div>
+                <div class="budget-stat">
+                    <span class="stat-label">Spent this Month</span>
+                    <div class="stat-value" style="font-size: 1.5rem; color: var(--warning);">₹1,05,000</div>
+                </div>
+                <div class="budget-stat">
+                    <span class="stat-label">Current Available</span>
+                    <div class="stat-value" style="font-size: 1.5rem; color: var(--primary);">₹45,000</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button class="btn-request" style="flex: 1;" onclick="toggleSubPage('requestPage')">Raise Need for Money</button>
+                <button class="btn-view-details role-manager" style="flex: 1;" onclick="alert('Viewing History...')">View Dept History</button>
+            </div>
         </div>
 
-        <!-- Section 3: Manager Approval Queue (Manager View) -->
-        <div class="card role-manager" style="display: none;" id="managerQueue">
+        <!-- Section 3: Manager Approval Queue (Manager View Only) -->
+        <div class="card role-manager" id="managerQueue">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h2>Department Requests</h2>
+                <h2>Employee Requests Queue</h2>
                 <span class="badge badge-pending">2 New</span>
             </div>
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
-                            <th>Employee</th>
-                            <th>Amount</th>
-                            <th>Reason</th>
+                            <th>Employee Name</th>
+                            <th>Amount Needed</th>
+                            <th>Reason for Need</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>Employee 4</td>
-                            <td>₹12,000</td>
-                            <td>Server maintenance overdue</td>
+                            <td>Sachit (ID: 8347)</td>
+                            <td style="color: var(--primary); font-weight: 700;">₹12,000</td>
+                            <td>Workstation upgrade for AI processing</td>
                             <td>
-                                <button class="btn-view-details" style="width: auto; padding: 0.4rem 1rem; margin-right: 5px;" onclick="escalateRequest('Employee 4')">Escalate to CFO</button>
-                                <button class="btn-view-details" style="width: auto; padding: 0.4rem 1rem; color: var(--danger);" onclick="alert('Rejected')">Reject</button>
+                                <div style="display: flex; gap: 5px;">
+                                    <button class="btn-view-details" style="width: auto; padding: 0.4rem 0.8rem; background: var(--success); color: #000;" onclick="handleRequest('accept', 12000)">Accept (Use Reserve)</button>
+                                    <button class="btn-view-details" style="width: auto; padding: 0.4rem 0.8rem; border-color: var(--warning); color: var(--warning);" onclick="handleRequest('pass', 12000)">Pass to CFO</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Rahul (ID: 9212)</td>
+                            <td style="color: var(--primary); font-weight: 700;">₹60,000</td>
+                            <td>New cloud server deployment (Exceeds Reserve)</td>
+                            <td>
+                                <div style="display: flex; gap: 5px;">
+                                    <button class="btn-view-details" style="width: auto; padding: 0.4rem 0.8rem; opacity: 0.5; cursor: not-allowed;" disabled>Accept (Insuff. Funds)</button>
+                                    <button class="btn-view-details" style="width: auto; padding: 0.4rem 0.8rem; border-color: var(--primary); color: var(--primary);" onclick="handleRequest('pass', 60000)">Raise to CFO</button>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -536,43 +577,109 @@
 
         <!-- Analytics Sub-page -->
         <div id="analyticsPage" class="sub-page">
-            <div class="card">
+            <!-- Organization Management Grid -->
+            <div class="card role-admin">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                    <h2>Budget Analytics</h2>
-                    <button class="btn-view-details" style="width: auto; padding: 0.5rem 1rem;" onclick="toggleSubPage('main')">Close</button>
+                    <div>
+                        <h2>Organization Management</h2>
+                        <p style="color: var(--muted-text); font-size: 0.9rem;">Manage your departments, staff roles, and budgets.</p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-view-details" style="width: auto; padding: 0.5rem 1rem; background: var(--primary); color: #000;" onclick="toggleSubPage('addDeptPage')">
+                            <i class="fa-solid fa-plus"></i> Add Dept
+                        </button>
+                        <button class="btn-view-details" style="width: auto; padding: 0.5rem 1rem; border-color: var(--success); color: var(--success);" onclick="toggleSubPage('addEmployeePage')">
+                            <i class="fa-solid fa-user-plus"></i> Add Employee
+                        </button>
+                        <button class="btn-view-details" style="width: auto; padding: 0.5rem 1rem;" onclick="toggleSubPage('main')">Close</button>
+                    </div>
                 </div>
+                
                 <div class="analytics-grid">
                     <div class="chart-container">
                         <canvas id="budgetChart"></canvas>
                     </div>
                     <div class="table-container">
-                        <table>
+                        <h3>Department Breakdown</h3>
+                        <table style="margin-top: 1rem;">
                             <thead>
                                 <tr>
                                     <th>Department</th>
-                                    <th>Allocated</th>
-                                    <th>Status</th>
+                                    <th>Staff</th>
+                                    <th>Priority</th>
+                                    <th>Budget</th>
+                                    <th>Remaining</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                {% for budget in budgets %}
                                 <tr>
-                                    <td>Engineering</td>
-                                    <td>₹1,50,000</td>
-                                    <td><span class="badge badge-approved">Approved</span></td>
+                                    <td>{{ budget.department }}</td>
+                                    <td>0</td> 
+                                    <td>
+                                        {% if budget.priority == 3 %}
+                                        <span class="badge badge-approved" style="background: rgba(0, 242, 254, 0.1); color: var(--primary);">High</span>
+                                        {% elif budget.priority == 2 %}
+                                        <span class="badge" style="background: rgba(255, 255, 255, 0.05); color: var(--muted-text);">Medium</span>
+                                        {% else %}
+                                        <span class="badge" style="background: rgba(255, 255, 255, 0.02); color: var(--muted-text); opacity: 0.6;">Low</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>₹{{ budget.allocated_amount }}</td>
+                                    <td style="color: var(--primary);">₹{{ budget.requested_amount }}</td>
+                                    <td>
+                                        <div style="display: flex; gap: 8px;">
+                                            <button onclick="toggleSubPage('editDeptPage')" style="background: none; border: none; color: var(--muted-text); cursor: pointer;"><i class="fa-solid fa-pen-to-square"></i></button>
+                                            <button onclick="confirm('Are you sure you want to remove this department?')" style="background: none; border: none; color: var(--warning); cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
+                                        </div>
+                                    </td>
                                 </tr>
+                                {% empty %}
                                 <tr>
-                                    <td>Marketing</td>
-                                    <td>₹80,000</td>
-                                    <td><span class="badge badge-approved">Approved</span></td>
+                                    <td colspan="5" style="text-align: center; color: var(--muted-text); padding: 2rem;">No departments found. Add your first department above!</td>
                                 </tr>
-                                <tr>
-                                    <td>Operations</td>
-                                    <td>₹90,000</td>
-                                    <td><span class="badge badge-pending">Pending</span></td>
-                                </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
+                </div>
+
+                <div class="table-container" style="margin-top: 3rem;">
+                    <h3 style="margin-bottom: 1.5rem;">Team Directory & Role Management</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name / ID</th>
+                                <th>Department</th>
+                                <th>Current Role</th>
+                                <th>Status</th>
+                                <th>Management Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for emp in all_employees %}
+                            <tr>
+                                <td>{{ emp.user.first_name|default:"Employee" }} (ID: {{ emp.employee_id }})</td>
+                                <td>{{ emp.department.name }}</td>
+                                <td><span class="badge {% if emp.role == 'MANAGER' %}badge-approved{% else %}badge-pending{% endif %}">{{ emp.role }}</span></td>
+                                <td>Active</td>
+                                <td>
+                                    {% if emp.role == 'EMPLOYEE' %}
+                                    <button class="btn-view-details" style="width: auto; padding: 0.3rem 0.6rem; font-size: 0.75rem; border-color: var(--success); color: var(--success);" onclick="alert('Promoted')">Make Manager</button>
+                                    {% else %}
+                                    <button class="btn-view-details" style="width: auto; padding: 0.3rem 0.6rem; font-size: 0.75rem; border-color: var(--warning); color: var(--warning);" onclick="alert('Demoted')">Remove Manager Role</button>
+                                    {% endif %}
+                                    <button onclick="confirm('Remove?')" style="background: none; border: none; color: var(--warning); cursor: pointer; margin-left: 10px;"><i class="fa-solid fa-user-xmark"></i></button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--muted-text); padding: 2rem;">No staff registered yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -581,18 +688,18 @@
         <div id="requestPage" class="sub-page">
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                    <h2>Raise Budget Request</h2>
+                    <h2 id="requestTitle">Raise Need for Money</h2>
                     <button class="btn-view-details" style="width: auto; padding: 0.5rem 1rem;" onclick="toggleSubPage('main')">Cancel</button>
                 </div>
                 <div class="form-container">
                     <form id="requestForm">
                         <div class="form-group">
-                            <label>Amount Requested (₹)</label>
-                            <input type="number" class="form-control" placeholder="e.g. 5000" required>
+                            <label>Amount Needed (₹)</label>
+                            <input type="number" class="form-control" placeholder="Enter amount..." required>
                         </div>
                         <div class="form-group">
-                            <label>Description of Need</label>
-                            <textarea class="form-control" rows="4" placeholder="Explain why this budget is needed for your tasks..." required></textarea>
+                            <label>Reason for Need</label>
+                            <textarea class="form-control" rows="4" placeholder="Briefly describe why this money is required for your department/tasks..." required></textarea>
                         </div>
                         <div class="form-group">
                             <label class="toggle-switch">
@@ -600,10 +707,91 @@
                                     <input type="checkbox">
                                     <span class="slider"></span>
                                 </span>
-                                Is this an urgent issue?
+                                Is this an urgent financial emergency?
                             </label>
                         </div>
-                        <button type="submit" class="btn-submit">Submit to Manager</button>
+                        <button type="submit" class="btn-submit" id="submitBtn">Send to Manager</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Management: Add Department Form -->
+        <div id="addDeptPage" class="sub-page">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2>Add New Department</h2>
+                    <button class="btn-view-details" style="width: auto; padding: 0.5rem 1rem;" onclick="toggleSubPage('analyticsPage')">Back</button>
+                </div>
+                <div class="form-container">
+                    <form onsubmit="event.preventDefault(); alert('Department Created Successfully!'); toggleSubPage('analyticsPage');">
+                        <div class="form-group">
+                            <label>Department Name</label>
+                            <input type="text" class="form-control" placeholder="e.g. Research & Development" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Initial Monthly Allocation (₹)</label>
+                            <input type="number" class="form-control" placeholder="e.g. 50000" required>
+                        </div>
+                        <button type="submit" class="btn-submit">Create Department</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Management: Add Employee Form -->
+        <div id="addEmployeePage" class="sub-page">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2>Add New Employee</h2>
+                    <button class="btn-view-details" style="width: auto; padding: 0.5rem 1rem;" onclick="toggleSubPage('analyticsPage')">Back</button>
+                </div>
+                <div class="form-container">
+                    <form onsubmit="event.preventDefault(); alert('Employee Added Successfully!'); toggleSubPage('analyticsPage');">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" class="form-control" placeholder="Enter name..." required>
+                        </div>
+                        <div class="form-group">
+                            <label>Assign to Department</label>
+                            <select class="form-control" required>
+                                <option value="">Select Dept...</option>
+                                <option>Engineering</option>
+                                <option>Marketing</option>
+                                <option>Operations</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Initial Role</label>
+                            <select class="form-control" required>
+                                <option value="EMPLOYEE">Standard Employee</option>
+                                <option value="MANAGER">Department Manager</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-submit" style="background: var(--success); color: #000;">Add to Team</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Management: Edit Department Form -->
+        <div id="editDeptPage" class="sub-page">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2>Edit Department Details</h2>
+                    <button class="btn-view-details" style="width: auto; padding: 0.5rem 1rem;" onclick="toggleSubPage('analyticsPage')">Back</button>
+                </div>
+                <div class="form-container">
+                    <form onsubmit="event.preventDefault(); alert('Changes Saved!'); toggleSubPage('analyticsPage');">
+                        <div class="form-group">
+                            <label>New Department Name</label>
+                            <input type="text" class="form-control" value="Engineering" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Adjust Allocation (₹)</label>
+                            <input type="number" class="form-control" value="150000" required>
+                        </div>
+                        <button type="submit" class="btn-submit">Save Changes</button>
                     </form>
                 </div>
             </div>
@@ -611,15 +799,15 @@
     </main>
 
     <script>
-        // Role Switcher Logic
-        const roleSwitcher = document.getElementById('roleSwitcher');
         const welcomeText = document.getElementById('welcomeText');
-        const roleSubtext = document.getElementById('roleSubtext');
+        const displayDept = document.getElementById('displayDept');
+        const displayInstitute = document.getElementById('displayInstitute');
+        const requestTitle = document.getElementById('requestTitle');
+        const submitBtn = document.getElementById('submitBtn');
 
-        roleSwitcher.addEventListener('change', function() {
-            const role = this.value;
-            updateUIForRole(role);
-        });
+        // Initializing UI based on Server-Side Role (Single Source of Truth)
+        const userRole = "{{ employee.role }}";
+        updateUIForRole(userRole);
 
         function updateUIForRole(role) {
             // Hide all role-specific elements
@@ -628,29 +816,27 @@
             });
 
             if (role === 'ADMIN') {
-                welcomeText.textContent = 'Welcome, CFO';
-                roleSubtext.textContent = 'CFO / Finance Head - Full organization overview.';
                 document.querySelectorAll('.role-admin').forEach(el => el.style.display = 'block');
             } else if (role === 'MANAGER') {
-                welcomeText.textContent = 'Welcome, Dept Manager';
-                roleSubtext.textContent = 'Engineering Manager - Manage department funds and requests.';
                 document.querySelectorAll('.role-manager').forEach(el => el.style.display = 'block');
-                document.getElementById('managerQueue').style.display = 'block';
-                document.getElementById('mainCard').querySelector('.stat-label.total').textContent = 'Dept Budget';
-                document.getElementById('mainCard').querySelector('.total').textContent = '₹1,50,000';
+                requestTitle.textContent = "Raise Need to CFO";
+                submitBtn.textContent = "Raise Need to CFO";
             } else {
-                welcomeText.textContent = 'Welcome, Employee';
-                roleSubtext.textContent = 'Engineering Team - Raise budget issues and needs.';
                 document.querySelectorAll('.role-employee').forEach(el => el.style.display = 'block');
+                requestTitle.textContent = "Raise Need to Manager";
+                submitBtn.textContent = "Raise Need to Manager";
             }
         }
 
-        function escalateRequest(name) {
-            alert(`Request from ${name} has been escalated to the CFO / Finance Team for final approval.`);
+        function handleRequest(action, amount) {
+            if (action === 'accept') {
+                alert(`Request for ₹${amount} has been accepted. Funds will be deducted from your Department Reserve.`);
+            } else {
+                alert(`Request for ₹${amount} has been passed to the CFO for final approval as the department needs additional funding.`);
+            }
         }
 
-        // Initialize with default role
-        updateUIForRole('ADMIN');
+        // Role-based UI is already initialized above using server-side variables
 
         // Dropdown toggle
         const dropdownBtn = document.getElementById('userDropdown');
@@ -671,7 +857,6 @@
             subPages.forEach(p => p.classList.remove('active'));
             
             if (pageId === 'main') {
-                // Just close everything
                 return;
             }
 
@@ -695,12 +880,7 @@
                     labels: ['Engineering', 'Marketing', 'Operations', 'Remaining'],
                     datasets: [{
                         data: [150000, 80000, 90000, 180000],
-                        backgroundColor: [
-                            '#00f2fe',
-                            '#4facfe',
-                            '#10b981',
-                            'rgba(255, 255, 255, 0.05)'
-                        ],
+                        backgroundColor: ['#00f2fe', '#4facfe', '#10b981', 'rgba(255, 255, 255, 0.05)'],
                         borderColor: 'rgba(255, 255, 255, 0.1)',
                         borderWidth: 1
                     }]
@@ -711,11 +891,7 @@
                     plugins: {
                         legend: {
                             position: 'bottom',
-                            labels: {
-                                color: '#94a3b8',
-                                padding: 20,
-                                font: { size: 12 }
-                            }
+                            labels: { color: '#94a3b8', padding: 20, font: { size: 12 } }
                         }
                     }
                 }
@@ -725,9 +901,13 @@
         // Form Submission
         document.getElementById('requestForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            alert('Your budget request has been submitted successfully as "Pending".');
+            const role = roleSwitcher.value;
+            const target = role === 'EMPLOYEE' ? 'Manager' : 'CFO';
+            alert(`Your request has been successfully submitted to the ${target}.`);
             toggleSubPage('main');
         });
     </script>
+</body>
+</html>
 </body>
 </html>

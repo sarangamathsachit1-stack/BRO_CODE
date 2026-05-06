@@ -350,7 +350,8 @@
                 <div class="id-helper">Use this ID to log in to your account after setup</div>
             </div>
 
-            <form id="onboardingForm">
+            <form id="onboardingForm" action="{% url 'onboarding' %}" method="POST">
+                {% csrf_token %}
                 <div class="form-grid">
                     <div class="form-group full-width">
                         <label for="location">Company Location</label>
@@ -359,6 +360,11 @@
                     <div class="form-group full-width">
                         <label for="description">Company Description (Optional)</label>
                         <textarea id="description" class="form-control" rows="3" placeholder="Briefly describe your company mission..."></textarea>
+                    </div>
+                    <div class="form-group full-width" style="margin-top: 1rem; padding: 1.5rem; background: rgba(0, 242, 254, 0.05); border: 1px solid var(--primary); border-radius: 12px;">
+                        <label for="totalBudget" style="color: var(--primary); font-weight: 700;">Total Organization Budget (₹)</label>
+                        <input type="number" id="totalBudget" name="total_budget" class="form-control" style="font-size: 1.2rem; font-weight: 700;" placeholder="e.g. 500000" required>
+                        <p style="font-size: 0.8rem; color: var(--muted-text); margin-top: 0.5rem;">This is the total pool of money you will allocate across all departments.</p>
                     </div>
                 </div>
 
@@ -414,7 +420,7 @@
                     <div class="dept-grid">
                         <div class="form-group">
                             <label>Department Name</label>
-                            <input type="text" class="form-control" placeholder="e.g. Engineering" required>
+                            <input type="text" name="dept_name[]" class="form-control" placeholder="e.g. Engineering" required>
                         </div>
                         <div class="form-group">
                             <label>Number of Employees</label>
@@ -424,6 +430,14 @@
                             <label>Assign Manager</label>
                             <select class="form-control head-select" required data-index="${i}">
                                 <option value="">Select Manager</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Department Priority</label>
+                            <select name="dept_priority[]" class="form-control" style="border-color: var(--primary);" required>
+                                <option value="3">High Priority</option>
+                                <option value="2" selected>Medium Priority</option>
+                                <option value="1">Low Priority</option>
                             </select>
                         </div>
                     </div>
@@ -491,9 +505,9 @@
             // Show success state
             document.getElementById('successOverlay').style.display = 'flex';
             
-            // Redirect after 3 seconds
+            // Redirect after 3 seconds to the COMPANY DASHBOARD
             setTimeout(() => {
-                window.location.href = "{% url 'login' %}"; 
+                e.target.submit();
             }, 3000);
         });
     </script>

@@ -37,6 +37,22 @@
             overflow-x: hidden;
         }
 
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('/media/logo.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.08;
+            z-index: -2;
+            pointer-events: none;
+        }
+
         /* Ambient Glow Background */
         .ambient-glow {
             position: fixed;
@@ -160,16 +176,69 @@
             box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
         }
 
-        .password-toggle {
-            position: absolute;
-            right: 1.2rem;
-            top: 2.3rem;
-            color: var(--muted-text);
+        /* Selection Styling */
+        .role-selection {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .role-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
             cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .role-card i {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .role-card h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .role-card p {
+            font-size: 0.85rem;
+            color: var(--muted-text);
+        }
+
+        .role-card:hover {
+            background: rgba(0, 242, 254, 0.08);
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 242, 254, 0.2);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .back-btn {
+            background: transparent;
+            border: none;
+            color: var(--muted-text);
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 1.5rem;
             transition: color 0.3s ease;
         }
 
-        .password-toggle:hover {
+        .back-btn:hover {
             color: var(--primary);
         }
 
@@ -263,9 +332,50 @@
 
     <main>
         <div class="login-card">
-            <h1>Login to ZORO</h1>
+            <h1 id="loginTitle">Login to ZORO</h1>
             
-            <form action="#" method="POST" id="loginForm">
+            <!-- Selection State -->
+            <div id="selectionArea" class="role-selection">
+                <div class="role-card" onclick="showLoginForm('company')">
+                    <i class="fa-solid fa-building"></i>
+                    <h3>Login as Company</h3>
+                    <p>Manage your entire organization and budgets.</p>
+                </div>
+                <div class="role-card" onclick="showLoginForm('employee')">
+                    <i class="fa-solid fa-user-tie"></i>
+                    <h3>Login as Employee</h3>
+                    <p>Raise budget needs and track your department.</p>
+                </div>
+            </div>
+
+            <!-- Company Login Form -->
+            <form action="#" method="POST" id="companyLoginForm" class="hidden">
+                <button type="button" class="back-btn" onclick="showSelection()"><i class="fa-solid fa-chevron-left"></i> Change Role</button>
+                <div class="form-group">
+                    <label for="companyEmail">Company Email</label>
+                    <input type="email" id="companyEmail" name="email" class="form-input" placeholder="admin@company.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="companyPassword">Password</label>
+                    <input type="password" id="companyPassword" name="password" class="form-input" placeholder="••••••••" required>
+                </div>
+
+                <div class="form-options">
+                    <label class="remember-me">
+                        <input type="checkbox"> Remember Me
+                    </label>
+                    <a href="#" class="forgot-password">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="login-btn">
+                    Company Login <i class="fa-solid fa-right-to-bracket"></i>
+                </button>
+            </form>
+
+            <!-- Employee Login Form -->
+            <form action="#" method="POST" id="employeeLoginForm" class="hidden">
+                <button type="button" class="back-btn" onclick="showSelection()"><i class="fa-solid fa-chevron-left"></i> Change Role</button>
                 <div class="form-group">
                     <label for="companyName">Company Name</label>
                     <input type="text" id="companyName" name="companyName" class="form-input" placeholder="Enter company name" required>
@@ -277,9 +387,8 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" class="form-input" placeholder="••••••••" required>
-                    <i class="fa-regular fa-eye password-toggle" id="togglePassword"></i>
+                    <label for="employeePassword">Password</label>
+                    <input type="password" id="employeePassword" name="password" class="form-input" placeholder="••••••••" required>
                 </div>
 
                 <div class="form-options">
@@ -290,7 +399,7 @@
                 </div>
 
                 <button type="submit" class="login-btn">
-                    Login <i class="fa-solid fa-right-to-bracket"></i>
+                    Employee Login <i class="fa-solid fa-right-to-bracket"></i>
                 </button>
             </form>
 
@@ -301,23 +410,40 @@
     </main>
 
     <script>
-        const togglePassword = document.querySelector('#togglePassword');
-        const password = document.querySelector('#password');
+        const selectionArea = document.getElementById('selectionArea');
+        const companyForm = document.getElementById('companyLoginForm');
+        const employeeForm = document.getElementById('employeeLoginForm');
+        const loginTitle = document.getElementById('loginTitle');
 
-        togglePassword.addEventListener('click', function (e) {
-            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-            password.setAttribute('type', type);
-            this.classList.toggle('fa-eye');
-            this.classList.toggle('fa-eye-slash');
+        function showLoginForm(role) {
+            selectionArea.classList.add('hidden');
+            if (role === 'company') {
+                companyForm.classList.remove('hidden');
+                loginTitle.textContent = "Company Login";
+            } else {
+                employeeForm.classList.remove('hidden');
+                loginTitle.textContent = "Employee Login";
+            }
+        }
+
+        function showSelection() {
+            companyForm.classList.add('hidden');
+            employeeForm.classList.add('hidden');
+            selectionArea.classList.remove('hidden');
+            loginTitle.textContent = "Login to ZORO";
+        }
+
+        // Handle submissions (Simulated)
+        companyForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            // Redirect as ADMIN for Company Login
+            window.location.href = "{% url 'dashboard' %}?role=ADMIN";
         });
 
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        employeeForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            // In a real app, send data to backend
-            const empId = document.getElementById('employeeId').value;
-            
-            // Redirecting to dashboard for demo
-            window.location.href = "{% url 'dashboard' %}";
+            // Redirect as EMPLOYEE for standard Employee Login
+            window.location.href = "{% url 'dashboard' %}?role=EMPLOYEE";
         });
     </script>
 </body>

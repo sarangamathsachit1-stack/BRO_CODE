@@ -1,60 +1,82 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-# Create your models here.
+# SaaS ARCHITECTURE: 3 MAIN TABLES WITH STRICT MULTI-TENANCY
 
 class Company(models.Model):
+    # TABLE 1: COMPANY (TENANT)
     name = models.CharField(max_length=255)
-    mobile_number = models.CharField(max_length=15)
     email = models.EmailField(unique=True)
-    gst_number = models.CharField(max_length=20, blank=True, null=True)
-    location = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)
-    subscription_status = models.BooleanField(default=True)
+    password = models.CharField(max_length=255)
+    mobile_number = models.CharField(max_length=15)
+    total_budget = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
 
-class Department(models.Model):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='departments')
-    name = models.CharField(max_length=255)
-    total_budget = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
-    
-    def __str__(self):
-        return f"{self.name} ({self.company.name})"
-
 class Employee(models.Model):
+    # TABLE 2: EMPLOYEE (TIED TO COMPANY_ID)
     ROLE_CHOICES = [
-        ('ADMIN', 'Admin/CFO'),
-        ('MANAGER', 'Department Manager'),
+        ('ADMIN', 'Admin'),
+        ('MANAGER', 'Manager'),
         ('EMPLOYEE', 'Employee'),
     ]
     
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='employee_profile')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     employee_id = models.CharField(max_length=50, unique=True)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='employees', null=True, blank=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='employees')
+    name = models.CharField(max_length=255, default='Unknown')
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='EMPLOYEE')
-    
-    def __str__(self):
-        return f"{self.user.username} - {self.role}"
-
-class BudgetRequest(models.Model):
-    STATUS_CHOICES = [
-        ('PENDING', 'Pending'),
-        ('ESCALATED', 'Escalated to CFO'),
-        ('APPROVED', 'Approved'),
-        ('REJECTED', 'Rejected'),
-    ]
-    
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='requests')
-    amount = models.DecimalField(max_digits=12, decimal_places=2)
-    reason = models.TextField()
-    is_emergency = models.BooleanField(default=False)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    department_name = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
-        return f"Request by {self.employee.user.username} - {self.status}"
+        return f"{self.name} ({self.company.name})"
+
+class BudgetAllocation(models.Model):
+    # TABLE 3: BUDGET/ALLOCATION (TIED TO COMPANY_ID)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='budgets')
+    department = models.CharField(max_length=255)
+    requested_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    allocated_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    priority = models.IntegerField(default=1) # 1: Low, 2: Medium, 3: High
+    status = models.CharField(max_length=50, default='PENDING') # PENDING, APPROVED, REJECTED
+    
+    def __str__(self):
+        return f"{self.department} Budget - {self.company.name}"
+
+class School(models.Model):
+    name = models.CharField(max_length=255)
+    location = models.CharField(max_length=255)
+    contact_number = models.CharField(max_length=20)
+    principal_name = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+class Collage(models.Model):
+    name = models.CharField(max_length=255)
+    location = models.CharField(max_length=255)
+    contact_number = models.CharField(max_length=20)
+    dean_name = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+class Hospital(models.Model):
+    name = models.CharField(max_length=255)
+    location = models.CharField(max_length=255)
+    contact_number = models.CharField(max_length=20)
+    bed_capacity = models.IntegerField(default=0)
+
+    def __str__(self):
+        return self.name
+
+class Bank(models.Model):
+    name = models.CharField(max_length=255)
+    location = models.CharField(max_length=255)
+    contact_number = models.CharField(max_length=20)
+    branch_code = models.CharField(max_length=50, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
